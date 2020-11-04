@@ -1,0 +1,17 @@
+import packs.*
+import linea.*
+
+
+
+describe "test creditoDisponible" {
+	const unaFecha = new Date(day =10,month= 3,year = 2019)
+	const otraFecha = new Date(day =11,month= 3,year = 2019)
+	const creditoDisponible = new CreditoDisponible(fechaDeVencimiento = otraFecha,credito = 80)
+
+	const unConsumo = new Consumo(costo = 30,fecha = unaFecha,cuantoUso = 2,tipo = "internet")
+	
+	test "el pack credito disponible satisface un consumo de internet"{
+		assert.that(creditoDisponible.satisfaceConsumo(unConsumo))
+	}
+	
+}
