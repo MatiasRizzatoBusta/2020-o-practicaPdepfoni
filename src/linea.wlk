@@ -3,9 +3,12 @@ import packs.*
 class Linea {
 	var numero
 	var costoTotal = 0
+	var registroDeDeuda = 0
 	var packsQueTiene = []
 	var fechaActual = new Date() //fecha del dia de hoy
 	var consumosTotales = []
+	var tipoLinea = lineaComun
+	
 	
 	method agregarPack(nuevoPack) = packsQueTiene.add(nuevoPack)
 	
@@ -30,19 +33,10 @@ class Linea {
 		const listaConsumosQueCumplen = consumosTotales.filter({consumo => consumo.estaEntreEstasFechas(fechaActual.minusDays(30),fechaActual)})
 		return listaConsumosQueCumplen.sum({consumo => consumo.costo()})
 	} 
-	
+		
+	method consumir(consumo) = tipoLinea.hacerUnConsumo(consumo)
 	
 	method puedeHacerConsumo(unConsumo) = packsQueTiene.all({pack => pack.satisfaceConsumo(unConsumo)})
-	
-	
-	method hacerUnConsumo(consumo){
-		if(self.puedeHacerConsumo(consumo)){
-		consumo.aplicarse(self)	
-		}else{
-			self.error("No alcanzan los packs para realizar el consumo")
-		}
-		
-	}
 	
 	method agarrarElUltimoQueCumple(consumo) = packsQueTiene.find({pack => pack.satisfaceConsumo(consumo)})
 	
@@ -61,13 +55,23 @@ class Linea {
 	
 }
 
-class LineaBlack inherits Linea{
-	var registroDeDeuda = 0
+object lineaComun inherits Linea{
 	
-	
-	override method hacerUnConsumo(consumo){
+	method hacerUnConsumo(consumo){
 		if(self.puedeHacerConsumo(consumo)){
 		consumo.aplicarse(self)	
+		}else{
+			self.error("No alcanzan los packs para realizar el consumo")
+		}
+		
+	}
+}
+
+object lineaBlack inherits Linea{
+	
+	 method hacerUnConsumo(consumo){
+		if(self.puedeHacerConsumo(consumo)){
+		consumo.aplicarse(self)	//ver si hay forma de solo overridear el else
 		}else{
 			consumo.aplicarse(self)
 			self.agregarADeuda(consumo)
@@ -77,6 +81,13 @@ class LineaBlack inherits Linea{
 	method agregarADeuda(consumo){
 		registroDeDeuda += consumo.costo()
 	}
+}
+
+object lineaPlatinum inherits Linea{
+	
+	method hacerUnConsumo(consumo){
+		consumo.aplicarse(self)
+		}
 }
 
 class Consumo{
