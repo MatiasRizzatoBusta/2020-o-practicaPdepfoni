@@ -1,14 +1,16 @@
 import packs.*
 import linea.*
+import packs.*
+import consumos.*
 
 const unaFecha = new Date(day =11,month= 3,year = 2019)
 const otraFecha = new Date(day =10,month= 3,year = 2019)
 const otraOtraFecha = new Date(day = 20,month = 6,year = 2022)
-const creditoDisponible = new CreditoDisponible(fechaDeVencimiento = otraFecha,fechaActual = unaFecha,credito = 80)
-const mbLibres = new MbLibresPlus(fechaDeVencimiento = otraOtraFecha,fechaActual = unaFecha,mbLibres = 200)
-const linea1 = new Linea(numero = 1155818028,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaComun)
-const linea2 = new Linea(numero = 1155818029,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaBlack)
-const unConsumo = new Consumo(fecha = unaFecha,cuantoUso = 2,tipo = "internet")
+const creditoDisponible = new CreditoDisponible(fechaDeVencimiento = otraFecha,fechaActual = unaFecha,cuantoPuedeConsumir = 80)
+const mbLibres = new MbLibresPlus(fechaDeVencimiento = otraOtraFecha,fechaActual = unaFecha,cuantoPuedeConsumir = 200)
+const linea1 = new Linea(numero = 1155818028,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaComun,fechaActual =unaFecha)
+const linea2 = new Linea(numero = 1155818029,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaBlack,fechaActual =unaFecha)
+const unConsumo = new ConsumoInternet(fecha = unaFecha,mbUsados = 20)
 	
 	test "test de que se prduzca un efecto "{
 		linea1.limpiarPacks()
@@ -16,10 +18,18 @@ const unConsumo = new Consumo(fecha = unaFecha,cuantoUso = 2,tipo = "internet")
 	}
 	
 	test "test de que no pueda hacer un consumo"{
-		assert.notThat(linea1.consumir(unConsumo))
+		assert.throwsExceptionWithMessage("No alcanzan los packs",{linea1.consumir(unConsumo)})
 	}
 	
 	test "test de que se devuelve algo"{
 		linea2.consumir(unConsumo)
-		assert.equals(0.2,linea2.mostrarDeuda())
+		assert.equals(2,linea2.costoTotal())
 	}
+	
+/*
+ * Lo minimo necesario para agregar un nuevo pack es crear el nuevo tipo de pack y hacer que este herede de la clase pack y cambiar los metodos
+ * necesarios para que esta pueda adaptarse a las particularidades que vaya a tener. Es importante que el nuevo pack entienda los mismos mensajes
+ * que los demas packs para respetar el polimorfismo que hay entre los packs.
+ * Para agregar un nuevo consumo hay que agregar una nueva constante de la clase consumo con su fecha, cuantoUso y su tipo para que luego la linea
+ * lo pueda guardar en su registros.
+ */

@@ -2,10 +2,9 @@ import packs.*
 
 class Linea {
 	var numero
-	var costoTotal = 0
 	var registroDeDeuda = 0
 	var packsQueTiene = []
-	var fechaActual = new Date() //fecha del dia de hoy
+	var fechaActual 
 	var consumosTotales = []
 	var tipoLinea = lineaComun
 	
@@ -18,20 +17,17 @@ class Linea {
 	method agregarConsumo(consumo){
 		consumosTotales.add(consumo)
 	}
-	
-	method costoConsumo(packUsado,segundosUsado){
-		packUsado.agregarConsumo(segundosUsado)
-	}
+
+	method listaConsumosEntreFechas(fechaInicial,fechaFinal) = consumosTotales.filter({consumo => consumo.estaEntreEstasFechas(fechaInicial,fechaFinal)})
 	
 	method costoPromedio(fechaInicial,fechaFinal){
-		const listaConsumosQueCumplen = consumosTotales.filter({consumo => consumo.estaEntreEstasFechas(fechaInicial,fechaFinal)})
-		const tamanio = listaConsumosQueCumplen.size()
-		const costoPeriodo = listaConsumosQueCumplen.sum({consumo => consumo.costo()})
+		const tamanio = self.listaConsumosEntreFechas(fechaInicial,fechaFinal).size()
+		const costoPeriodo = self.listaConsumosEntreFechas(fechaInicial,fechaFinal).sum({consumo => consumo.costo()})
 		return costoPeriodo / tamanio
 	}
 	
 	method costoTotal(){
-		const listaConsumosQueCumplen = consumosTotales.filter({consumo => consumo.estaEntreEstasFechas(fechaActual.minusDays(30),fechaActual)})
+		const listaConsumosQueCumplen = self.listaConsumosEntreFechas(fechaActual.minusDays(30),fechaActual)
 		return listaConsumosQueCumplen.sum({consumo => consumo.costo()})
 	} 
 		
@@ -39,7 +35,7 @@ class Linea {
 	
 	method puedeHacerConsumo(unConsumo) = packsQueTiene.all({pack => pack.satisfaceConsumo(unConsumo)})
 	
-	method agarrarElUltimoQueCumple(consumo) = packsQueTiene.find({pack => pack.satisfaceConsumo(consumo)})
+	method agarrarElUltimoQueCumple(consumo) = packsQueTiene.reverse().find({pack => pack.satisfaceConsumo(consumo)})
 	
 	method gastarUltimoPackUtil(consumo){
 		const packAGastar = self.agarrarElUltimoQueCumple(consumo)
@@ -68,7 +64,7 @@ object lineaComun {
 		if(linea.puedeHacerConsumo(consumo)){
 		consumo.aplicarse(linea)	
 		}else{
-			self.error("No alcanzan los packs para realizar el consumo")
+			self.error("No alcanzan los packs")
 		}
 		
 	}
@@ -95,44 +91,4 @@ object lineaPlatinum {
 	method hacerUnConsumo(consumo,linea){
 		consumo.aplicarse(linea)
 		}
-}
-
-class Consumo{
-	var fecha
-	var costo = 0
-	var cuantoUso
-	var tipo = "" //llamada o internet
-	var precioFijoInternet = 0.1
-	var precioFijoLlamadas = 1
-	var precioSegundoLlamadas = 0.05
-	
-	method costo() = costo
-	method tipo() = tipo
-	method fecha() = fecha
-	method cuantoUso() = cuantoUso
-	
-	method agregarCosto(nuevoCosto){
-		costo = nuevoCosto
-	}
-	
-	method estaEntreEstasFechas(fechaInicial,fechaFinal) = fecha.between(fechaInicial,fechaFinal)
-	
-	method aplicarse(linea){
-		if(tipo == "internet"){
-		self.agregarCosto(precioFijoInternet * cuantoUso)
-		linea.agregarConsumo(self)
-		linea.gastarUltimoPackUtil(self)
-		}else{
-			if(cuantoUso <= 30){
-				self.agregarCosto(precioFijoLlamadas)
-				linea.agregarConsumo(self)
-				linea.gastarUltimoPackUtil(self)
-			}else{
-				self.agregarCosto(precioFijoLlamadas + (cuantoUso - 30) * precioSegundoLlamadas)
-				linea.agregarConsumo(self)
-				linea.gastarUltimoPackUtil(self)
-			}
-		}
-	}
-
 }
