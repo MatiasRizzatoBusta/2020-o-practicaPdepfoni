@@ -1,17 +1,25 @@
 import packs.*
 import linea.*
 
-
-
-describe "test creditoDisponible" {
-	const unaFecha = new Date(day =10,month= 3,year = 2019)
-	const otraFecha = new Date(day =11,month= 3,year = 2019)
-	const creditoDisponible = new CreditoDisponible(fechaDeVencimiento = otraFecha,credito = 80)
-
-	const unConsumo = new Consumo(costo = 30,fecha = unaFecha,cuantoUso = 2,tipo = "internet")
+const unaFecha = new Date(day =11,month= 3,year = 2019)
+const otraFecha = new Date(day =10,month= 3,year = 2019)
+const otraOtraFecha = new Date(day = 20,month = 6,year = 2022)
+const creditoDisponible = new CreditoDisponible(fechaDeVencimiento = otraFecha,fechaActual = unaFecha,credito = 80)
+const mbLibres = new MbLibresPlus(fechaDeVencimiento = otraOtraFecha,fechaActual = unaFecha,mbLibres = 200)
+const linea1 = new Linea(numero = 1155818028,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaComun)
+const linea2 = new Linea(numero = 1155818029,packsQueTiene = [creditoDisponible,mbLibres],tipoLinea = lineaBlack)
+const unConsumo = new Consumo(fecha = unaFecha,cuantoUso = 2,tipo = "internet")
 	
-	test "el pack credito disponible satisface un consumo de internet"{
-		assert.that(creditoDisponible.satisfaceConsumo(unConsumo))
+	test "test de que se prduzca un efecto "{
+		linea1.limpiarPacks()
+		assert.equals([mbLibres],linea1.packsQueTiene())
 	}
 	
-}
+	test "test de que no pueda hacer un consumo"{
+		assert.notThat(linea1.consumir(unConsumo))
+	}
+	
+	test "test de que se devuelve algo"{
+		linea2.consumir(unConsumo)
+		assert.equals(0.2,linea2.mostrarDeuda())
+	}

@@ -1,15 +1,15 @@
 class Packs {
 	const fechaDeVencimiento 
-	var fechaActual = new Date()
+	var fechaActual
 	
 	method satisfaceConsumo(consumo) = not(self.estaVencido())
 	
 	method gastarse(gasto)
 	method seAcabo() = false
 	
-	method sirve() = true
+	method noSirve() = false
 	
-	method estaVencido() = fechaActual < fechaDeVencimiento
+	method estaVencido() = fechaActual > fechaDeVencimiento
 
 }
 
@@ -33,7 +33,7 @@ class CreditoDisponible inherits Packs{
 	
 	override method seAcabo() = credito == 0
 	
-	override method sirve() = not(self.seAcabo()) or not(self.estaVencido())
+	override method noSirve() = self.seAcabo() or self.estaVencido()
 	
 }
 

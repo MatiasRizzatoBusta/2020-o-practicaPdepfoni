@@ -9,10 +9,11 @@ class Linea {
 	var consumosTotales = []
 	var tipoLinea = lineaComun
 	
-	
 	method agregarPack(nuevoPack) = packsQueTiene.add(nuevoPack)
 	
 	method sacarPack(pack) = packsQueTiene.remove(pack)
+	
+	method packsQueTiene() = packsQueTiene
 		
 	method agregarConsumo(consumo){
 		consumosTotales.add(consumo)
@@ -34,7 +35,7 @@ class Linea {
 		return listaConsumosQueCumplen.sum({consumo => consumo.costo()})
 	} 
 		
-	method consumir(consumo) = tipoLinea.hacerUnConsumo(consumo)
+	method consumir(consumo) = tipoLinea.hacerUnConsumo(consumo,self)
 	
 	method puedeHacerConsumo(unConsumo) = packsQueTiene.all({pack => pack.satisfaceConsumo(unConsumo)})
 	
@@ -49,17 +50,23 @@ class Linea {
 	}
 	
 	method limpiarPacks(){
-		const packsASacar = packsQueTiene.filter({pack => pack.sirve()})
+		const packsASacar = packsQueTiene.filter({pack =>pack.noSirve()})
 		packsASacar.forEach({pack => self.sacarPack(pack)})
 	}
 	
+	method agregarDeuda(costo){
+		registroDeDeuda += costo
+	}
+	
+	method mostrarDeuda() = registroDeDeuda
+	
 }
 
-object lineaComun inherits Linea{
+object lineaComun {
 	
-	method hacerUnConsumo(consumo){
-		if(self.puedeHacerConsumo(consumo)){
-		consumo.aplicarse(self)	
+	method hacerUnConsumo(consumo,linea){
+		if(linea.puedeHacerConsumo(consumo)){
+		consumo.aplicarse(linea)	
 		}else{
 			self.error("No alcanzan los packs para realizar el consumo")
 		}
@@ -67,32 +74,32 @@ object lineaComun inherits Linea{
 	}
 }
 
-object lineaBlack inherits Linea{
+object lineaBlack{
 	
-	 method hacerUnConsumo(consumo){
-		if(self.puedeHacerConsumo(consumo)){
-		consumo.aplicarse(self)	//ver si hay forma de solo overridear el else
+	 method hacerUnConsumo(consumo,linea){
+		if(linea.puedeHacerConsumo(consumo)){
+		consumo.aplicarse(linea)	
 		}else{
-			consumo.aplicarse(self)
-			self.agregarADeuda(consumo)
+			consumo.aplicarse(linea)
+			self.agregarADeudaDeLinea(consumo,linea)
 		}
 	}
 	
-	method agregarADeuda(consumo){
-		registroDeDeuda += consumo.costo()
+	method agregarADeudaDeLinea(consumo,linea){
+		linea.agregarDeuda(consumo.costo())
 	}
 }
 
-object lineaPlatinum inherits Linea{
+object lineaPlatinum {
 	
-	method hacerUnConsumo(consumo){
-		consumo.aplicarse(self)
+	method hacerUnConsumo(consumo,linea){
+		consumo.aplicarse(linea)
 		}
 }
 
 class Consumo{
 	var fecha
-	var costo
+	var costo = 0
 	var cuantoUso
 	var tipo = "" //llamada o internet
 	var precioFijoInternet = 0.1
@@ -115,9 +122,7 @@ class Consumo{
 		self.agregarCosto(precioFijoInternet * cuantoUso)
 		linea.agregarConsumo(self)
 		linea.gastarUltimoPackUtil(self)
-		
 		}else{
-			
 			if(cuantoUso <= 30){
 				self.agregarCosto(precioFijoLlamadas)
 				linea.agregarConsumo(self)
@@ -131,6 +136,3 @@ class Consumo{
 	}
 
 }
-
-
-
